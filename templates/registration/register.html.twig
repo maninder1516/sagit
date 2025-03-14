@@ -1,19 +1,47 @@
-{% extends 'base.html.twig' %}
+{# {% extends 'base.html.twig' %} #}
+{% extends 'baseizmo.html.twig' %}
 
 {% block title %}Register{% endblock %}
 
-{% block body %}
-    <h1>Register</h1>
+{% block content %}
+<div class="container-xl">
+    <div class="table-responsive">
+        <div class="table-wrapper">
+            <div class="table-title">
+				<div class="row">
+					<div class="col-sm-6">
+						<h2>Register</b></h2>
+					</div>					
+				</div>
+			</div>
 
-    {{ form_errors(registrationForm) }}
+             {% for flash_error in app.flashes('verify_email_error') %}
+                <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
+            {% endfor %}
 
-    {{ form_start(registrationForm) }}
-        {{ form_row(registrationForm.email) }}
-        {{ form_row(registrationForm.plainPassword, {
-            label: 'Password'
-        }) }}
-        {{ form_row(registrationForm.agreeTerms) }}
+            {{ form_errors(registrationForm) }}
 
-        <button type="submit" class="btn">Register</button>
-    {{ form_end(registrationForm) }}
+            {{ form_start(registrationForm) }}
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        {{ form_row(registrationForm.email, {'attr': {'class': 'form-control'} }) }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        {{ form_row(registrationForm.plainPassword, {
+                            label: 'Password',  'attr':{'class':'form-control'}
+                        }) }}
+                    </div>
+                </div>
+                <div class="form-row">
+                     <div class="form-group col-md-1">
+                        {{ form_row(registrationForm.agreeTerms, {'attr': {'class': 'form-control'} }) }}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Register</button>
+            {{ form_end(registrationForm) }}
+        </div>
+    </div>
+</div>
 {% endblock %}
