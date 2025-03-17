@@ -1,0 +1,43 @@
+{% extends 'baseizmo.html.twig' %}
+
+{% block title %}Login !!!{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+    <div class="table-responsive">
+        <div class="table-wrapper">
+            <div class="table-title">
+				<div class="row">
+					<div class="col-sm-6">
+						<h2>Login</b></h2>
+					</div>					
+				</div>
+			</div>
+
+            {% if error %}
+                <div>{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+            {% endif %}
+
+            <form action="{{ path('sagit_login') }}" method="post">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                       <label for="username">Email:</label>
+                       <input type="text" id="username" name="_username" value="{{ last_username }}" class="form-control" required>
+                    </div>                                           
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="_password" class="form-control" required>
+                    </div>                                           
+                </div>
+                <div class="form-group form-check">
+                    <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                    <label class="form-check-label" for="exampleCheck1">Check me out</label>
+                </div> 
+                 <button type="submit" class="btn btn-primary">Login</button>               
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
