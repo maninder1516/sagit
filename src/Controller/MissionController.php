@@ -35,7 +35,7 @@ final class MissionController extends AbstractController
         // Get current user role and id
         $user = $this->getUser();
         $isAdmin = $user && in_array('ROLE_ADMIN', $user->getRoles());
-
+        
         try {
             // Get missions query based on filters and user role
             $missionsQuery = $missionRepository->getFilteredMissionsQuery(
@@ -64,9 +64,13 @@ final class MissionController extends AbstractController
     }
 
     #[Route('/new', name: 'new')]
-    #[IsGranted('ROLE_CLIENT')]
     public function new(Request $request, MissionRepository $missionRepository): Response
     {
+        // Reject if user is not a client or is an admin
+        if (!$this->isGranted('ROLE_CLIENT') || $this->isGranted('ROLE_ADMIN')) {
+            throw $this->createAccessDeniedException('Only clients without admin role can create missions.');
+        }
+        
         $mission = new Mission();
         $form = $this->createForm(MissionType::class, $mission);
         $form->handleRequest($request);

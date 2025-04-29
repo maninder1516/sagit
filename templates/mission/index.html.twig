@@ -16,7 +16,7 @@
                         <a href="{{ path('sagit_logout') }}" class="btn btn-danger ml-2">
                             <i class="material-icons">exit_to_app</i> <span>Logout</span>
                         </a>
-                        {% if is_granted('ROLE_CLIENT') %}
+                        {% if is_granted('ROLE_CLIENT') and not is_granted('ROLE_ADMIN') %}
                             <a href="{{ path('sagit_mission_new') }}" class="btn btn-success">
                                 <i class="material-icons">&#xE147;</i> <span>Create New Mission</span>
                             </a>

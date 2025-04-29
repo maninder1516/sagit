@@ -10,10 +10,9 @@ security:
                 class: App\Entity\User
                 property: email
     
-    # Define role hierarchy - admins inherit client permissions
+    # Remove admin inheriting client role
     role_hierarchy:
-        ROLE_ADMIN: [ROLE_CLIENT]
-        ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
+        ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_CLIENT, ROLE_ALLOWED_TO_SWITCH]
     
     firewalls:
         main:
@@ -37,13 +36,15 @@ security:
             # entry_point: form_login
 
     # Easy way to control access for large sections of your site
-    # Note: Only the *first* access control that matches will be used
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/mission, roles: ROLE_CLIENT }
-        - { path: ^/, roles: ROLE_CLIENT }
+        # Explicitly restrict mission creation to client role only
+        - { path: ^/mission/new, roles: ROLE_CLIENT }
+        # Allow both client and admin to access other mission paths
+        - { path: ^/mission, roles: [ROLE_CLIENT, ROLE_ADMIN] }
+        - { path: ^/, roles: [ROLE_CLIENT, ROLE_ADMIN] }
 
 when@test:
     security:

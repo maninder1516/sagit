@@ -1,0 +1,16 @@
+.error-container {
+    padding: 3rem 1rem;
+}
+
+.error-code {
+    font-size: 8rem;
+    font-weight: bold;
+    color: #e74c3c;
+    margin-bottom: 1rem;
+}
+
+.error-message {
+    font-size: 2rem;
+    color: #34495e;
+    margin-bottom: 2rem;
+}

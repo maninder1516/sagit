@@ -1,0 +1,38 @@
+{% extends 'baseizmo.html.twig' %}
+
+{% block title %}Access Denied{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+   <div class="table-responsive">
+      <div class="table-wrapper">
+         <div class="table-title">
+            <div class="row">
+               <div class="col-sm-6">
+                  <h2>Access <b>Denied</b></h2>
+               </div>
+               <div class="col-sm-6 text-right">
+                  <a href="{{ path('sagit_mission_index') }}" class="btn btn-info">
+                     <i class="material-icons">home</i><span>Back to Dashboard</span>
+                  </a>
+               </div>
+            </div>
+         </div>
+         <div class="card">
+            <div class="card-body text-center">
+               <div class="error-container">
+                  <h1 class="error-code">403</h1>
+                  <p class="error-message">Access Denied</p>
+                  <p>You don't have permission to access this resource.</p>
+                  <div class="mt-4">
+                     <a href="{{ path('sagit_mission_index') }}" class="btn btn-primary">
+                        <i class="material-icons">arrow_back</i> Return to Dashboard
+                     </a>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+{% endblock %}

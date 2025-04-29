@@ -1,0 +1,38 @@
+{% extends 'baseizmo.html.twig' %}
+
+{% block title %}Page Not Found{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+   <div class="table-responsive">
+      <div class="table-wrapper">
+         <div class="table-title">
+            <div class="row">
+               <div class="col-sm-6">
+                  <h2>Page <b>Not Found</b></h2>
+               </div>
+               <div class="col-sm-6 text-right">
+                  <a href="{{ path('sagit_mission_index') }}" class="btn btn-info">
+                     <i class="material-icons">home</i><span>Back to Dashboard</span>
+                  </a>
+               </div>
+            </div>
+         </div>
+         <div class="card">
+            <div class="card-body text-center">
+               <div class="error-container">
+                  <h1 class="error-code">404</h1>
+                  <p class="error-message">Page Not Found</p>
+                  <p>The page you are looking for does not exist or might have been removed.</p>
+                  <div class="mt-4">
+                     <a href="{{ path('sagit_mission_index') }}" class="btn btn-primary">
+                        <i class="material-icons">arrow_back</i> Return to Dashboard
+                     </a>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+{% endblock %}
