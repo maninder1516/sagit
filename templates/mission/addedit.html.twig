@@ -18,16 +18,16 @@
 			</div>
             <div id="divFormMission"> 
                 {{ form_start(form) }}
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label for="inputEmail4">{{ form_label(form.serviceDate) }}</label>
-                            {{ form_widget(form.serviceDate, {'attr': {'class': 'form-control'} }) }}                            
-                            {{ form_errors(form.serviceDate) }}
-                        </div>
+                    <div class="form-row">                        
                         <div class="form-group col-md-6">
                             <label for="inputPassword4">{{ form_label(form.productName) }} </label>
                             {{ form_widget(form.productName, {'attr': {'class': 'form-control'} }) }}                           
                             {{ form_errors(form.productName) }}
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="inputEmail4">{{ form_label(form.serviceDate) }}</label>
+                            {{ form_widget(form.serviceDate, {'attr': {'class': 'form-control'} }) }}                            
+                            {{ form_errors(form.serviceDate) }}
                         </div>
                     </div>
                     <div class="form-row">

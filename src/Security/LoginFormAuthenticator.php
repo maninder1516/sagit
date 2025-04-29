@@ -47,7 +47,7 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
         }
 
         // Redirect to the mission page after login
-        return new RedirectResponse($this->urlGenerator->generate('sagit_mission'));
+        return new RedirectResponse($this->urlGenerator->generate('sagit_mission_index'));
     }
 
     protected function getLoginUrl(Request $request): string

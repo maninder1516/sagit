@@ -19,43 +19,42 @@ final class MissionController extends AbstractController
 {
     #[Route('/', name: 'index')]
     public function index(
-        Request $request, 
+        Request $request,
         MissionRepository $missionRepository,
         PaginatorInterface $paginator
-    ): Response
-    {
+    ): Response {
         // Create filter form
         $filterForm = $this->createForm(MissionFilterType::class);
         $filterForm->handleRequest($request);
-        
+
         // Get filters from form or request
-        $filters = $filterForm->isSubmitted() && $filterForm->isValid() 
-            ? $filterForm->getData() 
+        $filters = $filterForm->isSubmitted() && $filterForm->isValid()
+            ? $filterForm->getData()
             : $request->query->all();
-            
+
         // Get current user role and id
         $user = $this->getUser();
         $isAdmin = $user && in_array('ROLE_ADMIN', $user->getRoles());
-        
+
         try {
             // Get missions query based on filters and user role
             $missionsQuery = $missionRepository->getFilteredMissionsQuery(
                 $filters,
                 $isAdmin ? null : $user->getId() // If not admin, see only own missions
             );
-            
+
             // Paginate the results
             $missions = $paginator->paginate(
                 $missionsQuery,
                 $request->query->getInt('page', 1), // current page
-                10 // items per page
+                $this->getParameter('app.items_per_page') // items per page from env
             );
         } catch (\Exception $e) {
             // Handle exception, return empty result
             $this->addFlash('warning', 'An error occurred while fetching missions. ' . $e->getMessage());
             $missions = [];
         }
-        
+
         return $this->render('mission/index.html.twig', [
             'controller_name' => 'MissionController',
             'missions' => $missions ?? [],
@@ -93,7 +92,7 @@ final class MissionController extends AbstractController
     {
         // Check if current user owns this mission or is an admin
         $this->denyAccessUnlessGranted('VIEW', $mission);
-        
+
         return $this->render('mission/view.html.twig', [
             'mission' => $mission,
         ]);
@@ -104,7 +103,7 @@ final class MissionController extends AbstractController
     {
         // Check if current user owns this mission
         $this->denyAccessUnlessGranted('EDIT', $mission);
-        
+
         $form = $this->createForm(MissionType::class, $mission);
         $form->handleRequest($request);
 
@@ -113,7 +112,7 @@ final class MissionController extends AbstractController
             $missionRepository->save($mission);
 
             $this->addFlash('success', 'Mission updated successfully!');
-            
+
             return $this->redirectToRoute('sagit_mission_show', [
                 'id' => $mission->getId()
             ]);
@@ -124,24 +123,24 @@ final class MissionController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
-    
+
     #[Route('/delete/{id}', name: 'delete', methods: ['POST'])]
     public function delete(Request $request, Mission $mission, MissionRepository $missionRepository): Response
     {
         // Check if current user owns this mission or is an admin
         $this->denyAccessUnlessGranted('EDIT', $mission);
-        
+
         // Check CSRF token for security
         $submittedToken = $request->request->get('token');
-        if ($this->isCsrfTokenValid('delete-mission-'.$mission->getId(), $submittedToken)) {
+        if ($this->isCsrfTokenValid('delete-mission-' . $mission->getId(), $submittedToken)) {
             // Remove the mission
             $missionRepository->remove($mission);
-            
+
             $this->addFlash('success', 'Mission deleted successfully');
         } else {
             $this->addFlash('error', 'Invalid security token');
         }
-        
+
         return $this->redirectToRoute('sagit_mission_index');
     }
 }

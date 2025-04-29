@@ -82,7 +82,10 @@
                                 <a href="{{ path('sagit_mission_edit', {'id': mission.id}) }}" class="edit"><i class="material-icons" title="Edit">&#xE254;</i></a>
                             {% endif %}                             #}
                             <a href=/mission/view/{{mission.id}} class="view"><i class="material-icons" title="View">&#xE417;</i></a>
-                            <a href=/mission/edit/{{mission.id}} class="edit"><i class="material-icons" title="Edit">&#xE254;</i></a>
+                            {% if is_granted('ROLE_CLIENT') %}
+                                <a href=/mission/edit/{{mission.id}} class="edit"><i class="material-icons" title="Edit">&#xE254;</i></a>
+                            {% endif %}
+                            
                             <a href="javascript:void(0)" class="delete" data-toggle="modal" data-target="#deleteModal{{ mission.id }}"><i class="material-icons" title="Delete">&#xE872;</i></a>                                                   
                         </td>
                     </tr>
