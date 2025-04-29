@@ -18,12 +18,16 @@ final class LoginController extends AbstractController
         // Last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        //echo 'Login : '.$lastUsername; exit;
-
         return $this->render('login/index.html.twig', [
-            'controller_name' => 'LoginController',
             'last_username' => $lastUsername,
             'error'         => $error,
         ]);
+    }
+
+    #[Route('/logout', name: 'app_logout')]
+    public function logout(): void
+    {
+        // This method can be empty - it will be intercepted by the logout key on your firewall
+        throw new \LogicException('This method should not be reached!');
     }
 }

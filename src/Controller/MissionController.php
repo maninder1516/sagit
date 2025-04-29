@@ -8,7 +8,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class MissionController extends AbstractController
 {
-    #[Route('/mission', name: 'app_mission')]
+    #[Route('/mission', name: 'sagit_mission')]
     public function index(): Response
     {
         return $this->render('mission/index.html.twig', [
