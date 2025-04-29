@@ -24,7 +24,7 @@ final class LoginController extends AbstractController
         ]);
     }
 
-    #[Route('/logout', name: 'app_logout')]
+    #[Route('/logout', name: 'sagit_logout')]
     public function logout(): void
     {
         // This method can be empty - it will be intercepted by the logout key on your firewall

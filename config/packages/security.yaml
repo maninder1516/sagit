@@ -9,6 +9,12 @@ security:
             entity:
                 class: App\Entity\User
                 property: email
+    
+    # Define role hierarchy - admins inherit client permissions
+    role_hierarchy:
+        ROLE_ADMIN: [ROLE_CLIENT]
+        ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
+    
     firewalls:
         main:
             lazy: true
@@ -22,7 +28,7 @@ security:
                 # or you might need: always_use_default_target_path: true
 
             logout:
-                path: app_logout
+                path: sagit_logout
                 target: sagit_login
             # Remove the form_login entry if you're using custom_authenticator
             # Add this entry_point configuration to resolve the error
@@ -33,8 +39,11 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/mission, roles: ROLE_CLIENT }
+        - { path: ^/, roles: ROLE_CLIENT }
 
 when@test:
     security:
