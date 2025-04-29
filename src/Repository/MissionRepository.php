@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Mission;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -64,5 +65,31 @@ class MissionRepository extends ServiceEntityRepository
         } catch (\Exception $e) {
             return [];
         }
+    }
+    
+    /**
+     * Save a mission (create or update)
+     * 
+     * @param Mission $mission The mission to save
+     * @param User|null $client The client user to assign (only for new missions)
+     * @return Mission The saved mission
+     */
+    public function save(Mission $mission, ?User $client = null): Mission
+    {
+        $entityManager = $this->getEntityManager();
+        
+        // If this is a new mission and a client is provided, set it
+        if ($mission->getId() === null && $client !== null) {
+            $mission->setClient($client);
+        }
+        
+        // Persist if it's a new entity
+        if ($mission->getId() === null) {
+            $entityManager->persist($mission);
+        }
+        
+        $entityManager->flush();
+        
+        return $mission;
     }
 }

@@ -65,18 +65,15 @@ final class MissionController extends AbstractController
 
     #[Route('/mission/new', name: 'sagit_mission_new')]
     #[IsGranted('ROLE_CLIENT')]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, MissionRepository $missionRepository): Response
     {
         $mission = new Mission();
         $form = $this->createForm(MissionType::class, $mission);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Set the client as the current user
-            $mission->setClient($this->getUser());
-            
-            $entityManager->persist($mission);
-            $entityManager->flush();
+            // Save mission and set the current user as client
+            $mission = $missionRepository->save($mission, $this->getUser());
 
             $this->addFlash('success', 'Mission created successfully!');
 
@@ -102,7 +99,7 @@ final class MissionController extends AbstractController
     }
 
     #[Route('/mission/{id}/edit', name: 'sagit_mission_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Mission $mission, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Mission $mission, MissionRepository $missionRepository): Response
     {
         // Check if current user owns this mission
         $this->denyAccessUnlessGranted('EDIT', $mission);
@@ -111,7 +108,8 @@ final class MissionController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+            // Save mission (client already set for existing mission)
+            $missionRepository->save($mission);
 
             $this->addFlash('success', 'Mission updated successfully!');
             
