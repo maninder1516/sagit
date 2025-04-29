@@ -92,4 +92,17 @@ class MissionRepository extends ServiceEntityRepository
         
         return $mission;
     }
+    
+    /**
+     * Remove a mission
+     * 
+     * @param Mission $mission The mission to remove
+     * @return void
+     */
+    public function remove(Mission $mission): void
+    {
+        $entityManager = $this->getEntityManager();
+        $entityManager->remove($mission);
+        $entityManager->flush();
+    }
 }

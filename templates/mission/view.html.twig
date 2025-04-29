@@ -1,63 +1,83 @@
 {% extends 'baseizmo.html.twig' %}
-
 {% block title %}Mission Details{% endblock %}
-
 {% block content %}
 <div class="container-xl">
-    <div class="table-responsive">
-        <div class="table-wrapper">
-            <div class="table-title">
-                <div class="row">
-                    <div class="col-sm-6">
-                        <h2>Mission <b>Details</b></h2>
-                    </div>
-                    <div class="col-sm-6 text-right">
-                        {% if is_granted('EDIT', mission) %}
-                            <a href="{{ path('sagit_mission_edit', {'id': mission.id}) }}" class="btn btn-primary">
-                                <i class="material-icons">edit</i> <span>Edit</span>
-                            </a>
-                        {% endif %}
-                        <a href="{{ path('sagit_mission') }}" class="btn btn-secondary">
-                            <i class="material-icons">arrow_back</i> <span>Back to List</span>
-                        </a>
-                    </div>
-                </div>
+   <div class="table-responsive">
+      <div class="table-wrapper">
+         <div class="table-title">
+            <div class="row">
+               <div class="col-sm-6">
+                  <h2>Mission <b>Details</b></h2>
+               </div>
+               <div class="col-sm-6 text-right">
+                  {% if is_granted('EDIT', mission) %}
+                  <a href="{{ path('sagit_mission_edit', {'id': mission.id}) }}" class="btn btn-primary">
+                  <i class="material-icons">edit</i> <span>Edit</span>
+                  </a>
+                  <!-- Use button to trigger modal instead of direct link -->
+                  <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">
+                    <i class="material-icons">delete</i> <span>Delete</span>
+                  </button>
+                  {% endif %}
+                  <a href="{{ path('sagit_mission_index') }}" class="btn btn-secondary">
+                  <i class="material-icons">arrow_back</i> <span>Back to List</span>
+                  </a>
+               </div>
             </div>
-            
-            <div class="card">
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-3 font-weight-bold">Service Date:</div>
-                        <div class="col-md-9">{{ mission.serviceDate|date('Y-m-d') }}</div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-3 font-weight-bold">Product Name:</div>
-                        <div class="col-md-9">{{ mission.productName }}</div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-3 font-weight-bold">Quantity:</div>
-                        <div class="col-md-9">{{ mission.quantity }}</div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-3 font-weight-bold">Destination Country:</div>
-                        <div class="col-md-9">{{ mission.destinationCountry }}</div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-3 font-weight-bold">Vendor Name:</div>
-                        <div class="col-md-9">{{ mission.vendorName }}</div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-3 font-weight-bold">Vendor Email:</div>
-                        <div class="col-md-9">{{ mission.vendorEmail }}</div>
-                    </div>
-                </div>
+         </div>
+         <div class="card">
+            <div class="card-body">
+               <div class="row mb-3">
+                  <div class="col-md-3 font-weight-bold">Service Date:</div>
+                  <div class="col-md-9">{{ mission.serviceDate|date('Y-m-d') }}</div>
+               </div>
+               <div class="row mb-3">
+                  <div class="col-md-3 font-weight-bold">Product Name:</div>
+                  <div class="col-md-9">{{ mission.productName }}</div>
+               </div>
+               <div class="row mb-3">
+                  <div class="col-md-3 font-weight-bold">Quantity:</div>
+                  <div class="col-md-9">{{ mission.quantity }}</div>
+               </div>
+               <div class="row mb-3">
+                  <div class="col-md-3 font-weight-bold">Destination Country:</div>
+                  <div class="col-md-9">{{ mission.destinationCountry }}</div>
+               </div>
+               <div class="row mb-3">
+                  <div class="col-md-3 font-weight-bold">Vendor Name:</div>
+                  <div class="col-md-9">{{ mission.vendorName }}</div>
+               </div>
+               <div class="row mb-3">
+                  <div class="col-md-3 font-weight-bold">Vendor Email:</div>
+                  <div class="col-md-9">{{ mission.vendorEmail }}</div>
+               </div>
             </div>
-        </div>
+         </div>
+      </div>
+   </div>
+</div>
+
+<!-- Delete confirmation modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete this mission?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <form action="{{ path('sagit_mission_delete', {'id': mission.id}) }}" method="post">
+            <input type="hidden" name="token" value="{{ csrf_token('delete-mission-' ~ mission.id) }}">
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}

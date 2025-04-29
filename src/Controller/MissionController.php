@@ -14,9 +14,10 @@ use Symfony\Component\Routing\Attribute\Route;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[Route(path: '/mission', name: 'sagit_mission_')]
 final class MissionController extends AbstractController
 {
-    #[Route('/mission', name: 'sagit_mission')]
+    #[Route('/', name: 'index')]
     public function index(
         Request $request, 
         MissionRepository $missionRepository,
@@ -63,7 +64,7 @@ final class MissionController extends AbstractController
         ]);
     }
 
-    #[Route('/mission/new', name: 'sagit_mission_new')]
+    #[Route('/new', name: 'new')]
     #[IsGranted('ROLE_CLIENT')]
     public function new(Request $request, MissionRepository $missionRepository): Response
     {
@@ -87,7 +88,7 @@ final class MissionController extends AbstractController
         ]);
     }
 
-    #[Route('/mission/view/{id}', name: 'sagit_mission_show', methods: ['GET'])]
+    #[Route('/view/{id}', name: 'show', methods: ['GET'])]
     public function show(Mission $mission): Response
     {
         // Check if current user owns this mission or is an admin
@@ -98,7 +99,7 @@ final class MissionController extends AbstractController
         ]);
     }
 
-    #[Route('/mission/edit/{id}', name: 'sagit_mission_edit', methods: ['GET', 'POST'])]
+    #[Route('/edit/{id}', name: 'edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Mission $mission, MissionRepository $missionRepository): Response
     {
         // Check if current user owns this mission
@@ -122,5 +123,25 @@ final class MissionController extends AbstractController
             'mission' => $mission,
             'form' => $form->createView(),
         ]);
+    }
+    
+    #[Route('/delete/{id}', name: 'delete', methods: ['POST'])]
+    public function delete(Request $request, Mission $mission, MissionRepository $missionRepository): Response
+    {
+        // Check if current user owns this mission or is an admin
+        $this->denyAccessUnlessGranted('EDIT', $mission);
+        
+        // Check CSRF token for security
+        $submittedToken = $request->request->get('token');
+        if ($this->isCsrfTokenValid('delete-mission-'.$mission->getId(), $submittedToken)) {
+            // Remove the mission
+            $missionRepository->remove($mission);
+            
+            $this->addFlash('success', 'Mission deleted successfully');
+        } else {
+            $this->addFlash('error', 'Invalid security token');
+        }
+        
+        return $this->redirectToRoute('sagit_mission_index');
     }
 }
