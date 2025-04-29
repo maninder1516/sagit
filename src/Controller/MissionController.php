@@ -82,23 +82,23 @@ final class MissionController extends AbstractController
             ]);
         }
 
-        return $this->render('mission/new.html.twig', [
+        return $this->render('mission/addedit.html.twig', [
             'form' => $form->createView(),
         ]);
     }
 
-    #[Route('/mission/{id}', name: 'sagit_mission_show', methods: ['GET'])]
+    #[Route('/mission/view/{id}', name: 'sagit_mission_show', methods: ['GET'])]
     public function show(Mission $mission): Response
     {
         // Check if current user owns this mission or is an admin
         $this->denyAccessUnlessGranted('VIEW', $mission);
         
-        return $this->render('mission/show.html.twig', [
+        return $this->render('mission/view.html.twig', [
             'mission' => $mission,
         ]);
     }
 
-    #[Route('/mission/{id}/edit', name: 'sagit_mission_edit', methods: ['GET', 'POST'])]
+    #[Route('/mission/edit/{id}', name: 'sagit_mission_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Mission $mission, MissionRepository $missionRepository): Response
     {
         // Check if current user owns this mission
@@ -118,7 +118,7 @@ final class MissionController extends AbstractController
             ]);
         }
 
-        return $this->render('mission/edit.html.twig', [
+        return $this->render('mission/addedit.html.twig', [
             'mission' => $mission,
             'form' => $form->createView(),
         ]);

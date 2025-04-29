@@ -13,11 +13,14 @@
                         <h2>Manage <b>Missions</b></h2>
                     </div>
                     <div class="col-sm-6 text-right">
+                        <a href="{{ path('sagit_logout') }}" class="btn btn-danger ml-2">
+                            <i class="material-icons">exit_to_app</i> <span>Logout</span>
+                        </a>
                         {% if is_granted('ROLE_CLIENT') %}
                             <a href="{{ path('sagit_mission_new') }}" class="btn btn-success">
                                 <i class="material-icons">&#xE147;</i> <span>Create New Mission</span>
                             </a>
-                        {% endif %}
+                        {% endif %}                        
                     </div>
                 </div>
             </div>
@@ -29,11 +32,11 @@
     {% endfor %}
     
     <div class="filters">
-        <h3>Filter Missions</h3>
+        <h3>Filters : </h3>
         {{ form_start(filter_form) }}
             <div class="row">
                 <div class="col-md-4">
-                    {{ form_row(filter_form.productName) }}
+                    {{ form_row(filter_form.productName) }}                    
                 </div>
                 <div class="col-md-4">
                     {{ form_row(filter_form.destinationCountry) }}
@@ -75,7 +78,12 @@
                         <td>{{ mission.vendorName }}</td>
                         <td>{{ mission.client.email }}</td>
                         <td>
-                            <a href="#" class="btn btn-sm btn-info">View</a>
+                            {# {% if is_granted('ROLE_CLIENT') %}
+                                <a href="{{ path('sagit_mission_edit', {'id': mission.id}) }}" class="edit"><i class="material-icons" title="Edit">&#xE254;</i></a>
+                            {% endif %}                             #}
+                            <a href=/mission/view/{{mission.id}} class="view"><i class="material-icons" title="View">&#xE417;</i></a>
+                            <a href=/mission/edit/{{mission.id}} class="edit"><i class="material-icons" title="Edit">&#xE254;</i></a>
+                            <a href=/mission/delete/{{mission.id}} class="delete" onclick="return confirm('Are u sure?')"><i class="material-icons" title="Delete">&#xE872;</i></a>                                                   
                         </td>
                     </tr>
                 {% endfor %}
