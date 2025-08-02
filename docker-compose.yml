@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  php-fpm:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: sagit
+    working_dir: /var/www/html/sagit
+    volumes:
+      - ./:/var/www/html/sagit
+      # - symfony_logs:/var/www/html/sagit/var/log 
+      - ./docker/logs/symfony:/var/www/html/sagit/var/log   
+    depends_on:
+      - mysql
+
+  nginx:
+    image: nginx:stable
+    container_name: sagit_nginx
+    ports:
+      - "8082:82"
+    volumes:
+      - ./:/var/www/html/sagit
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php-fpm
+
+  mysql:
+    image: mysql:8
+    container_name: sagit_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: sagit
+      MYSQL_USER: sagit
+      MYSQL_PASSWORD: sagit
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.3
+    container_name: elk_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.0.3
+    container_name: elk_kibana
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  logstash:
+    image: docker.elastic.co/logstash/logstash:9.0.3
+    container_name: elk_logstash
+    ports:
+      - "5044:5044"
+    volumes:
+      - ./docker/logstash:/usr/share/logstash/pipeline
+      - symfony_logs:/var/www/html/sagit/var/log
+    depends_on:
+      - elasticsearch
+    environment:
+      - xpack.monitoring.enabled=false
+
+  
+volumes:
+  mysql_data:
+  elasticsearch_data:
+  symfony_logs:
