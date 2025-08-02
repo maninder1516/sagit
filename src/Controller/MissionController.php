@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Psr\Log\LoggerInterface;
 
 #[Route(path: '/mission', name: 'sagit_mission_')]
 final class MissionController extends AbstractController
@@ -21,7 +22,8 @@ final class MissionController extends AbstractController
     public function index(
         Request $request,
         MissionRepository $missionRepository,
-        PaginatorInterface $paginator
+        PaginatorInterface $paginator,
+        LoggerInterface $logger
     ): Response {
         // Create filter form
         $filterForm = $this->createForm(MissionFilterType::class);
@@ -42,7 +44,10 @@ final class MissionController extends AbstractController
                 $filters,
                 $isAdmin ? null : $user->getId() // If not admin, see only own missions
             );
-
+            $logger->info('Missions Listed', [
+                'user_id' => $user ? $user->getId() : null,
+                'filters' => $filters
+            ]);
             // Paginate the results
             $missions = $paginator->paginate(
                 $missionsQuery,
@@ -64,7 +69,7 @@ final class MissionController extends AbstractController
     }
 
     #[Route('/new', name: 'new')]
-    public function new(Request $request, MissionRepository $missionRepository): Response
+    public function new(Request $request, MissionRepository $missionRepository, LoggerInterface $logger): Response
     {
         // Reject if user is not a client or is an admin
         if (!$this->isGranted('ROLE_CLIENT') || $this->isGranted('ROLE_ADMIN')) {
@@ -78,6 +83,11 @@ final class MissionController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             // Save mission and set the current user as client
             $mission = $missionRepository->save($mission, $this->getUser());
+
+            $logger->info('Mission created', [
+                'mission_id' => $mission->getId(),
+                'user_id' => $this->getUser() ? $this->getUser()->getId() : null
+            ]);
 
             $this->addFlash('success', 'Mission created successfully!');
 
@@ -103,7 +113,7 @@ final class MissionController extends AbstractController
     }
 
     #[Route('/edit/{id}', name: 'edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Mission $mission, MissionRepository $missionRepository): Response
+    public function edit(Request $request, Mission $mission, MissionRepository $missionRepository, LoggerInterface $logger): Response
     {
         // Check if current user owns this mission
         $this->denyAccessUnlessGranted('EDIT', $mission);
@@ -114,6 +124,11 @@ final class MissionController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             // Save mission (client already set for existing mission)
             $missionRepository->save($mission);
+
+            $logger->info('Mission updated', [
+                'mission_id' => $mission->getId(),
+                'user_id' => $this->getUser() ? $this->getUser()->getId() : null
+            ]);
 
             $this->addFlash('success', 'Mission updated successfully!');
 
@@ -129,7 +144,7 @@ final class MissionController extends AbstractController
     }
 
     #[Route('/delete/{id}', name: 'delete', methods: ['POST'])]
-    public function delete(Request $request, Mission $mission, MissionRepository $missionRepository): Response
+    public function delete(Request $request, Mission $mission, MissionRepository $missionRepository, LoggerInterface $logger): Response
     {
         // Check if current user owns this mission or is an admin
         $this->denyAccessUnlessGranted('EDIT', $mission);
@@ -140,8 +155,17 @@ final class MissionController extends AbstractController
             // Remove the mission
             $missionRepository->remove($mission);
 
+            $logger->info('Mission deleted', [
+                'mission_id' => $mission->getId(),
+                'user_id' => $this->getUser() ? $this->getUser()->getId() : null
+            ]);
+
             $this->addFlash('success', 'Mission deleted successfully');
         } else {
+            $logger->warning('Mission delete failed due to invalid CSRF token', [
+                'mission_id' => $mission->getId(),
+                'user_id' => $this->getUser() ? $this->getUser()->getId() : null
+            ]);
             $this->addFlash('error', 'Invalid security token');
         }
 
