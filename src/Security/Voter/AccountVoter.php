@@ -20,7 +20,8 @@ final class AccountVoter extends Voter
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        // replace with your own logic
+        // Our job is to determine if your voter should vote on the attribute/subject combination.
+        // We return true if the attribute is show or delete and if the object is a Account instance.
         // https://symfony.com/doc/current/security/voters.html
         return in_array($attribute, [self::SHOW, self::DELETE])
             && $subject instanceof \App\Entity\Account;
@@ -35,6 +36,8 @@ final class AccountVoter extends Voter
     protected function voteOnAttribute(string $attribute, mixed $account, TokenInterface $token): bool
     {
         //dd($this->security);
+        // If we return true from supports(), then this method is called. Your job is to return true
+        // to allow access and false to deny access. The $token can be used to find the current user object
 
         $user = $token->getUser();
 
