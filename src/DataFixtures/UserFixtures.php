@@ -32,9 +32,23 @@ class UserFixtures extends Fixture
         $clientUser->setEmail('client@example.com');
         $clientUser->setRoles(['ROLE_CLIENT']);
         $clientUser->setPassword($this->passwordHasher->hashPassword($clientUser, 'client123'));
-        
+
+        // Account Manager user
+        $accountmanager = new User();
+        $accountmanager->setEmail('accountmanager@gmail.com');
+        $accountmanager->setRoles(['ROLE_ACCOUNT_MANAGER']);
+        $accountmanager->setPassword($this->passwordHasher->hashPassword($accountmanager, 'accountmanager123'));
+
+        // Account user
+        $accountUser = new User();
+        $accountUser->setEmail('accountuser@gmail.com');
+        $accountUser->setRoles(['']);
+        $accountUser->setPassword($this->passwordHasher->hashPassword($accountUser, 'accountuser123'));
+
         $manager->persist($adminUser);
         $manager->persist($clientUser);
+        $manager->persist($accountmanager);
+        $manager->persist($accountUser);
         $manager->flush();
     }
 }
