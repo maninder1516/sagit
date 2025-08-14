@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+{% if account %}
+    <h1>Account Details</h1>
+    <ul>
+        <li>Account Holder: {{ account.accountHolder.email }}</li>
+        <li>Account Manager: {{ account.accountManager.email }}</li>
+        <li><a href="{{ path('sagit_account_delete', { id: account.id }) }}">DELETE</a></li>
+    </ul>
+{% else %}
+    <p>No account found.</p>
+{% endif %}
+ 
+{% endblock %}
