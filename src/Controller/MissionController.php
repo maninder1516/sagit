@@ -55,7 +55,7 @@ final class MissionController extends AbstractController
                     $isAdmin ? null : $user->getUserIdentifier() // If not admin, see only own missions
                 );
                 $logger->info('Missions Listed', [
-                    'user_id' => $user ? $user->getUserIdentifier() : null,
+                    'user_id' => $user?->getId(),  // Old Way $user ? $user->getId() : null,
                     'filters' => $filters
                 ]);
                 // Paginate the results

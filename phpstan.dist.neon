@@ -1,0 +1,24 @@
+includes:
+    - vendor/phpstan/phpstan-symfony/extension.neon
+    - vendor/phpstan/phpstan-symfony/rules.neon
+
+parameters:
+    # Analysis level (0 = loose, 9 = strictest)
+    level: 6
+
+    paths:
+        - src
+        - tests
+
+    # Don’t treat phpdoc as always certain
+    treatPhpDocTypesAsCertain: false
+
+    # Symfony integration
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+
+    # Exclude folders we don’t want to analyse
+    excludePaths:
+        - %currentWorkingDirectory%/var/*
+        - %currentWorkingDirectory%/migrations/*
+        - %currentWorkingDirectory%/public/*
