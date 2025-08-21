@@ -1,16 +1,51 @@
-{% extends 'base.html.twig' %}
+{% extends 'baseizmo.html.twig' %}
 
-{% block body %}
+{% block title %}Account Details{% endblock %}
+{% block content %}
+<div class="container-xl">
+   <div class="table-responsive">
+      <div class="table-wrapper">
+         <div class="table-title">
+            <div class="row">
+               <div class="col-sm-6">
+                  <h2>Account <b>Details</b></h2>
+               </div>
+               <div class="col-sm-6 text-right">
+                  
+                  <!-- Use button to trigger modal instead of direct link -->                  
+                  <a class="btn btn-danger" href="{{ path('sagit_account_delete', { id: account.id }) }}">DELETE</a>
+                  <!--
+                  <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal{{ account.id }}">
+                    <i class="material-icons">delete</i> <span>Delete</span>
+                  </button>
+                  -->
+                  <a href="{{ path('sagit_mission_index') }}" class="btn btn-info"><i class="material-icons">&#xE860;</i><span>Back to List</span></a>                  
+               </div>
+            </div>
+         </div>
+         <div class="card">
+            {% if account %}
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3 font-weight-bold">Account Holder:</div>
+                        <div class="col-md-9">{{ account.accountHolder.email }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3 font-weight-bold">Account Manager:</div>
+                        <div class="col-md-9">{{ account.accountManager.email }}</div>
+                    </div>                                             
+                </div>
+            {% else %}
+                <p>No account found.</p>
+            {% endif %}
+         </div>
+      </div>
+   </div>
+</div>
 
-{% if account %}
-    <h1>Account Details</h1>
-    <ul>
-        <li>Account Holder: {{ account.accountHolder.email }}</li>
-        <li>Account Manager: {{ account.accountManager.email }}</li>
-        <li><a href="{{ path('sagit_account_delete', { id: account.id }) }}">DELETE</a></li>
-    </ul>
-{% else %}
-    <p>No account found.</p>
-{% endif %}
- 
+{# Include the shared delete modal template at the end of the page #}
+{% include 'mission/_delete_modal.html.twig' with {
+    'id': account.id,
+    'name': account.accountHolder.email
+} %}
 {% endblock %}
