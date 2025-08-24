@@ -1,0 +1,34 @@
+# Read the documentation: https://github.com/FriendsOfSymfony/FOSElasticaBundle/blob/master/doc/setup.md
+fos_elastica:
+    clients:
+        default:
+            host: elasticsearch
+            port: 9200
+            username: elastic
+            password: Maninder@elastic
+    indexes:
+        mission:
+            properties:
+                id: { type: integer }
+                client:
+                    type: object
+                    properties:
+                        id: { type: integer }
+                        email: { type: text }
+                serviceDate: { type: date }
+                productName: { type: text }
+                quantity: { type: integer }
+                destinationCountry: { type: text }
+                vendorName: { type: text }
+                vendorEmail: { type: text }
+            persistence:
+                driver: orm
+                model: App\Entity\Mission
+                provider: ~
+                finder: ~
+                listener:
+                    enabled: true
+                    flush: true
+                elastica_to_model_transformer:
+                    ignore_missing: true
+                repository: App\Repository\MissionElasticRepository

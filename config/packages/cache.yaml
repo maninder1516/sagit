@@ -9,7 +9,9 @@ framework:
 
         # Redis
         app: cache.adapter.redis
-        default_redis_provider: "%env(REDIS_URL)%"
+        #default_redis_provider: "%env(REDIS_URL)%"
+        system: cache.adapter.redis
+        default_redis_provider: 'redis://redis:6380'  # Docker Ports
         # default_redis_provider: redis://localhost
 
         # APCu (not recommended with heavy random-write workloads as memory fragmentation can cause perf issues)

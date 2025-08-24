@@ -5,7 +5,9 @@ RUN apt-get update && apt-get install -y \
     git zip unzip libicu-dev libonig-dev libxml2-dev \
     libzip-dev libpng-dev libjpeg-dev libfreetype6-dev \
     libpq-dev libmcrypt-dev libcurl4-openssl-dev \
-    curl libssl-dev libxslt-dev gnupg
+    curl libssl-dev libxslt-dev gnupg \
+    && pecl install redis \
+    && docker-php-ext-enable redis
 
 # Install PHP extensions
 RUN docker-php-ext-install intl pdo pdo_mysql opcache zip gd

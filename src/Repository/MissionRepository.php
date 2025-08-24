@@ -7,15 +7,51 @@ use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
-
+use Elastica\Query;
+use FOS\ElasticaBundle\Finder\TransformedFinder;
 /**
  * @extends ServiceEntityRepository<Mission>
  */
-class MissionRepository extends ServiceEntityRepository
+class MissionRepository extends ServiceEntityRepository implements MissionRepositoryInterface
 {
+    private ?TransformedFinder $finder = null;
+    
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Mission::class);
+    }
+    
+    public function setFinder(TransformedFinder $finder): void
+    {
+        $this->finder = $finder;
+    }
+
+    public function search($query, $limit = null, array $options = array()): array
+    {
+        if ($this->finder === null) {
+            throw new \RuntimeException('Finder not initialized. Did you forget to call setFinder()?');
+        }
+        
+        if ($query instanceof Query) {
+            $queryObj = $query;
+        } else {
+            $queryObj = new Query\BoolQuery();
+            $queryObj->addShould(
+                new Query\QueryString($query)
+            );
+        }
+        
+        return $this->finder->find($queryObj, $limit);
+    }
+    
+    /**
+     * @return Mission|null
+     */
+    public function findOne($query, array $options = array()): ?Mission
+    {
+        $results = $this->find($query, 1, $options);
+        
+        return count($results) > 0 ? $results[0] : null;
     }
 
     /**

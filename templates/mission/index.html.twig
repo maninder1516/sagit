@@ -32,7 +32,26 @@
     {% endfor %}
     
     <div class="filters">
-        <h3>Filters : </h3>
+        {# Elastic Search #}
+        <div class="row mb-4">
+            <div class="col-12">
+                <h3>Search Missions</h3>
+                <form action="{{ path('sagit_mission_index') }}" method="get" class="search-form">
+                    <div class="input-group">
+                        <input type="text" name="q" value="{{ app.request.query.get('q') }}" 
+                            class="form-control" placeholder="Search missions...">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="material-icons">search</i> Search
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {# Mannual Filters  #}
+        <h3>Advanced Filters : </h3>        
         {{ form_start(filter_form) }}
             <div class="row">
                 <div class="col-md-4">
