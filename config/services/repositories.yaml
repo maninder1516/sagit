@@ -1,0 +1,18 @@
+services:
+    App\Repository\MissionRepository:
+        arguments:
+            $registry: '@doctrine'
+        tags: ['doctrine.repository_service']
+
+    App\Repository\MissionElasticRepository:
+        arguments:
+            $finder: '@fos_elastica.finder.app.mission'
+        
+    App\Repository\CompositeMissionRepository:
+        arguments:
+            $doctrineRepository: '@App\Repository\MissionRepository'
+            $elasticRepository: '@App\Repository\MissionElasticRepository'
+            $useElastic: true  # You can control this via parameter if needed
+
+    # Alias the composite repository as the default mission repository service
+    App\Repository\MissionRepositoryInterface: '@App\Repository\CompositeMissionRepository'
