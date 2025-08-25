@@ -1,0 +1,60 @@
+{# mission/_mission_list.html.twig - Partial template for mission list #}
+{% if missions and missions|length > 0 %}
+    {% for mission in missions %}
+        <div class="mission-item" data-id="{{ mission.id }}">
+            <h3 class="mission-title">
+                <a href="{{ path('sagit_mission_show', {'id': mission.id}) }}">
+                    {{ mission.title }}
+                </a>
+            </h3>
+            
+            {% if mission.description %}
+                <p class="mission-description">{{ mission.description|slice(0, 200) }}{% if mission.description|length > 200 %}...{% endif %}</p>
+            {% endif %}
+            
+            <div class="mission-meta">
+                <span class="service-date">
+                    <strong>Date:</strong> 
+                    {{ mission.serviceDate ? mission.serviceDate|date('Y-m-d') : 'N/A' }}
+                </span>
+                
+                <span class="quantity">
+                    <strong>Quantity:</strong> {{ mission.quantity ?? 0 }}
+                </span>
+                
+                {% if mission.destinationCountry %}
+                    <span class="country">
+                        <strong>Country:</strong> {{ mission.destinationCountry }}
+                    </span>
+                {% endif %}
+                
+                {% if mission.status %}
+                    <span class="status status-{{ mission.status|lower }}">
+                        {{ mission.status|title }}
+                    </span>
+                {% endif %}
+            </div>
+            
+            {% if is_granted('EDIT', mission) %}
+                <div class="mission-actions mt-2">
+                    <a href="{{ path('sagit_mission_edit', {'id': mission.id}) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    {% if is_granted('EDIT', mission) %}
+                        <form method="post" action="{{ path('sagit_mission_delete', {'id': mission.id}) }}" style="display: inline-block;" 
+                              onsubmit="return confirm('Are you sure you want to delete this mission?');">
+                            <input type="hidden" name="token" value="{{ csrf_token('delete-mission-' ~ mission.id) }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+{% else %}
+    <div class="no-results">
+        <h4>No missions found</h4>
+        <p>{% if app.request.query.get('q') %}Try adjusting your search terms or filters.{% else %}There are no missions to display.{% endif %}</p>
+        {% if is_granted('ROLE_CLIENT') and not is_granted('ROLE_ADMIN') %}
+            <a href="{{ path('sagit_mission_new') }}" class="btn btn-primary">Create Your First Mission</a>
+        {% endif %}
+    </div>
+{% endif %}

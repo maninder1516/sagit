@@ -1,0 +1,291 @@
+{# mission/index.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Missions{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .mission-search-container {
+            margin-bottom: 2rem;
+        }
+        
+        .search-input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .search-input-group input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .mission-item {
+            border: 1px solid #e9ecef;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            background: #fff;
+        }
+        
+        .mission-title {
+            margin: 0 0 0.5rem 0;
+            color: #2c3e50;
+        }
+        
+        .mission-title a {
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .mission-title a:hover {
+            color: #3498db;
+        }
+        
+        .mission-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            text-transform: capitalize;
+        }
+        
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-completed { background: #d1ecf1; color: #0c5460; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        
+        .pagination {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .pagination-btn {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #ddd;
+            text-decoration: none;
+            color: #007bff;
+            border-radius: 3px;
+        }
+        
+        .pagination-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        
+        .pagination-btn:hover:not(.active) {
+            background: #f8f9fa;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        #loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .filters-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        .filter-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-group label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+        
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Missions</h1>
+        {% if is_granted('ROLE_CLIENT') and not is_granted('ROLE_ADMIN') %}
+            <a href="{{ path('sagit_mission_new') }}" class="btn btn-primary">Create New Mission</a>
+        {% endif %}
+    </div>
+
+    <!-- Search and Filters Section -->
+    <div class="mission-search-container">
+        <!-- Quick Search -->
+        <div class="search-input-group">
+            <input type="text" 
+                   id="search-input" 
+                   placeholder="Search missions..." 
+                   value="{{ search_query|default('') }}"
+                   autocomplete="off">
+        </div>
+
+        <!-- Advanced Filters -->
+        <div class="filters-section">
+            <h5>Filters</h5>
+            {{ form_start(filter_form, {'attr': {'id': 'filter-form'}}) }}
+                <div class="filter-row">
+                    {% if filter_form.dateFrom is defined %}
+                        <div class="filter-group">
+                            {{ form_label(filter_form.dateFrom) }}
+                            {{ form_widget(filter_form.dateFrom) }}
+                        </div>
+                    {% endif %}
+                    
+                    {% if filter_form.dateTo is defined %}
+                        <div class="filter-group">
+                            {{ form_label(filter_form.dateTo) }}
+                            {{ form_widget(filter_form.dateTo) }}
+                        </div>
+                    {% endif %}
+                    
+                    {% if filter_form.country is defined %}
+                        <div class="filter-group">
+                            {{ form_label(filter_form.country) }}
+                            {{ form_widget(filter_form.country) }}
+                        </div>
+                    {% endif %}
+                    
+                    {% if filter_form.status is defined %}
+                        <div class="filter-group">
+                            {{ form_label(filter_form.status) }}
+                            {{ form_widget(filter_form.status) }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="filter-group">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                        <a href="{{ path('sagit_mission_index') }}" class="btn btn-secondary">Clear</a>
+                    </div>
+                </div>
+            {{ form_end(filter_form) }}
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading">
+        <div class="loading-spinner"></div>
+        <span>Searching...</span>
+    </div>
+
+    <!-- Results Container -->
+    <div id="mission-list">
+        {% include 'mission/_mission_list.html.twig' with {'missions': missions} %}
+    </div>
+
+    <!-- Pagination Container -->
+    <div id="pagination">
+        {% if missions.pageCount is defined and missions.pageCount > 1 %}
+            <div class="pagination">
+                {% if missions.currentPageNumber > 1 %}
+                    <a href="#" class="pagination-btn" data-page="{{ missions.currentPageNumber - 1 }}">Previous</a>
+                {% endif %}
+                
+                {% for page in 1..missions.pageCount %}
+                    <a href="#" 
+                       class="pagination-btn {{ page == missions.currentPageNumber ? 'active' : '' }}" 
+                       data-page="{{ page }}">{{ page }}</a>
+                {% endfor %}
+                
+                {% if missions.currentPageNumber < missions.pageCount %}
+                    <a href="#" class="pagination-btn" data-page="{{ missions.currentPageNumber + 1 }}">Next</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/mission-search-integration.js') }}"></script>
+    <script>
+        // Handle initial page load with existing query parameters
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchQuery = urlParams.get('q');
+            
+            if (searchQuery) {
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) {
+                    searchInput.value = searchQuery;
+                }
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,28 @@
+# config/services/mission_services.yaml
+services:
+    # Mission Search Service
+    App\Service\MissionSearchService:
+        arguments:
+            $missionRepository: '@App\Repository\MissionRepository'
+            $elasticRepository: '@App\Repository\MissionElasticRepository'
+            $elasticsearchService: '@App\Service\ElasticsearchService'
+            $redisService: '@App\Service\RedisService'
+            $paginator: '@knp_paginator'
+            $logger: '@logger'
+            $parameterBag: '@parameter_bag'
+        tags:
+            - { name: 'monolog.logger', channel: 'mission_search' }
+
+    # Mission Search Request Handler
+    App\Service\MissionSearchRequestHandler:
+        # No specific dependencies needed for this service
+
+    # Mission Controller with updated dependencies
+    App\Controller\MissionController:
+        arguments:
+            $missionSearchService: '@App\Service\MissionSearchService'
+            $requestHandler: '@App\Service\MissionSearchRequestHandler'
+            $logger: '@logger'
+        tags:
+            - { name: 'controller.service_arguments' }
+            - { name: 'monolog.logger', channel: 'mission_controller' }

@@ -16,30 +16,30 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Psr\Log\LoggerInterface;
 use App\Service\RedisService;
 use App\Service\ElasticsearchService;
+use App\Service\MissionSearchService;
+use App\Service\MissionSearchRequestHandler;
 use App\Repository\MissionElasticRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 #[Route(path: '/mission', name: 'sagit_mission_')]
 final class MissionController extends AbstractController
 {
-    private ElasticsearchService $elasticsearchService;
-    private RedisService $redisService;
+    private MissionSearchService $missionSearchService;
+    private MissionSearchRequestHandler $requestHandler;
     private LoggerInterface $logger;
 
     public function __construct(
-        ElasticsearchService $elasticsearchService,
-        RedisService $redisService,
+        MissionSearchService $missionSearchService,
+        MissionSearchRequestHandler $requestHandler,
         LoggerInterface $logger
     ) {
-        $this->elasticsearchService = $elasticsearchService;
-        $this->redisService = $redisService;
+        $this->missionSearchService = $missionSearchService;
+        $this->requestHandler = $requestHandler;
         $this->logger = $logger;
     }
     #[Route('/', name: 'index')]
     public function index(
         Request $request,
-        MissionRepository $missionRepository,
-        MissionElasticRepository $elasticRepository,
         PaginatorInterface $paginator
     ): Response {
         // Create filter form
@@ -51,123 +51,41 @@ final class MissionController extends AbstractController
         $isAdmin = $user && in_array('ROLE_ADMIN', $user->getRoles());
         $page = $request->query->getInt('page', 1);
         
-        // Check if we have a search query
+        // Get search query and filters
         $searchQuery = $request->query->get('q');
-        
-        // Create a unique cache key based on search/filters and user
-        $cacheKey = $searchQuery 
-            ? 'search_missions_' . md5($searchQuery . '_page_' . $page . '_user_' . ($user ? $user->getUserIdentifier() : 'anonymous') . '_admin_' . ($isAdmin ? '1' : '0'))
-            : 'filtered_missions_' . md5(serialize($filterForm->isSubmitted() && $filterForm->isValid() ? $filterForm->getData() : $request->query->all()) . '_page_' . $page . '_user_' . ($user ? $user->getUserIdentifier() : 'anonymous') . '_admin_' . ($isAdmin ? '1' : '0'));
+        $filters = $filterForm->isSubmitted() && $filterForm->isValid()
+            ? $filterForm->getData()
+            : $request->query->all();
 
-        // Skip cache for search queries as they need fresh Elasticsearch results
-        if ($searchQuery) {
-            $missions = null;
-        } else {
-            // Try to get cached data first for non-search queries
-            $missions = $this->redisService->getValue($cacheKey);
+        // Get sorting parameters
+        $sort = [];
+        $sortField = $request->query->get('sortBy');
+        $sortOrder = $request->query->get('sortOrder', 'asc');
+        if ($sortField) {
+            $sort[$sortField] = $sortOrder;
         }
 
-        if ($missions === null) {
-            try {
-                if ($searchQuery) {
-                    try {
-                        // Get search results using the same method as the search endpoint
-                        $searchResults = $this->elasticsearchService->searchWithFilters(
-                            'mission',
-                            $searchQuery,
-                            [], // No additional filters for basic search
-                            [], // No sorting
-                            $page,
-                            $this->getParameter('app.items_per_page')
-                        );
-                        
-                        $this->logger->info('Elasticsearch results', [
-                            'count' => $searchResults['total'] ?? 0,
-                            'query' => $searchQuery,
-                        ]);
+        // Search missions using the service
+        $result = $this->missionSearchService->searchMissions(
+            $searchQuery,
+            $filters,
+            $sort,
+            $page,
+            $user?->getUserIdentifier(),
+            $isAdmin
+        );
 
-                        // Convert Elasticsearch results to Mission entities
-                        if (!empty($searchResults['items'])) {
-                            $missionIds = [];
-                            foreach ($searchResults['items'] as $item) {
-                                if (isset($item['_source']['id'])) {
-                                    $missionIds[] = $item['_source']['id'];
-                                }
-                            }
-                            
-                            if (!empty($missionIds)) {
-                                // Fetch actual Mission entities from the repository
-                                $missionsQuery = $missionRepository->createQueryBuilder('m')
-                                    ->where('m.id IN (:ids)')
-                                    ->setParameter('ids', $missionIds)
-                                    ->getQuery();
-
-                                $missions = $paginator->paginate(
-                                    $missionsQuery,
-                                    $page,
-                                    $this->getParameter('app.items_per_page')
-                                );
-                            } else {
-                                $missions = [];
-                            }
-                        } else {
-                            $missions = [];
-                        }
-                        
-                        $this->logger->info('Search missions with Elasticsearch', [
-                            'query' => $searchQuery,
-                            'user_id' => $user?->getId(),
-                            'results_count' => count($missions)
-                        ]);
-                    } catch (\Exception $e) {
-                        $this->logger->error('Elasticsearch error', [
-                            'message' => $e->getMessage(),
-                            'trace' => $e->getTraceAsString()
-                        ]);
-                        throw $e;
-                    }
-                } else {
-                    // Use regular filters if no search query
-                    $filters = $filterForm->isSubmitted() && $filterForm->isValid()
-                        ? $filterForm->getData()
-                        : $request->query->all();
-                    
-                    // Get missions query based on filters and user role
-                    $missionsQuery = $missionRepository->getFilteredMissionsQuery(
-                        $filters,
-                        $isAdmin ? null : ($user ? (int)$user->getId() : null)
-                    );
-                    
-                    $this->logger->info('Filter missions from database', [
-                        'user_id' => $user?->getId(),
-                        'filters' => $filters
-                    ]);
-                    
-                    $missions = $paginator->paginate(
-                        $missionsQuery,
-                        $page,
-                        $this->getParameter('app.items_per_page')
-                    );
-                }
-
-                // Only cache non-search results
-                if (!$searchQuery) {
-                    // Store the paginated results to Redis (cache for 10 minutes)
-                    $this->redisService->setValue($cacheKey, $missions, 600);
-                    $this->logger->info('Missions cached in Redis', ['cache_key' => $cacheKey]);
-                }
-            } catch (\Exception $e) {
-                $this->addFlash('warning', 'An error occurred while fetching missions. ' . $e->getMessage());
-                $missions = [];
-            }
-        } else {
-            $this->logger->info('Missions retrieved from Redis cache', ['cache_key' => $cacheKey]);
+        if (isset($result['error'])) {
+            $this->addFlash('warning', 'An error occurred while fetching missions. ' . $result['error']);
         }
+
+        $missions = $result['missions'] ?? [];
 
         return $this->render('mission/index.html.twig', [
-            'missions' => $missions ?? [],
+            'missions' => $missions,
             'filter_form' => $filterForm->createView(),
-            'no_results' => empty($missions) || count($missions) === 0
+            'no_results' => empty($missions) || count($missions) === 0,
+            'search_query' => $searchQuery
         ]);
     }
 
@@ -186,6 +104,9 @@ final class MissionController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             // Save mission and set the current user as client
             $mission = $missionRepository->save($mission, $this->getUser());
+
+            // Clear mission cache
+            $this->missionSearchService->clearMissionCache($this->getUser()?->getUserIdentifier());
 
             $logger->info('Mission created', [
                 'mission_id' => $mission->getId(),
@@ -228,6 +149,9 @@ final class MissionController extends AbstractController
             // Save mission (client already set for existing mission)
             $missionRepository->save($mission);
 
+            // Clear mission cache
+            $this->missionSearchService->clearMissionCache($this->getUser()?->getUserIdentifier());
+
             $logger->info('Mission updated', [
                 'mission_id' => $mission->getId(),
                 'user_id' => $this->getUser() ? $this->getUser()->getUserIdentifier() : null
@@ -258,6 +182,9 @@ final class MissionController extends AbstractController
             // Remove the mission
             $missionRepository->remove($mission);
 
+            // Clear mission cache
+            $this->missionSearchService->clearMissionCache($this->getUser()?->getUserIdentifier());
+
             $logger->info('Mission deleted', [
                 'mission_id' => $mission->getId(),
                 'user_id' => $this->getUser() ? $this->getUser()->getUserIdentifier() : null
@@ -278,56 +205,40 @@ final class MissionController extends AbstractController
     #[Route('/search', name: 'search', methods: ['GET'])]
     public function search(Request $request): JsonResponse
     {
-        //echo 'Hello'; exit;
         $query = $request->query->get('q');
         $page = $request->query->getInt('page', 1);
-        $limit = $request->query->getInt('limit', 10);
-    
-        $filters = [];
         
-        // Add date range filter if provided
-        $dateFrom = $request->query->get('dateFrom');
-        $dateTo = $request->query->get('dateTo');
-        if ($dateFrom || $dateTo) {
-            $dateRange = [];
-            if ($dateFrom) $dateRange['gte'] = $dateFrom;
-            if ($dateTo) $dateRange['lte'] = $dateTo;
-            $filters['serviceDate'] = $dateRange;
-        }
-    
-        // Add quantity range filter if provided
-        $minQuantity = $request->query->get('minQuantity');
-        $maxQuantity = $request->query->get('maxQuantity');
-        if ($minQuantity || $maxQuantity) {
-            $quantityRange = [];
-            if ($minQuantity) $quantityRange['gte'] = (int)$minQuantity;
-            if ($maxQuantity) $quantityRange['lte'] = (int)$maxQuantity;
-            $filters['quantity'] = $quantityRange;
-        }
-    
-        // Add country filter if provided
-        $country = $request->query->get('country');
-        if ($country) {
-            $filters['destinationCountry'] = $country;
-        }
-    
-        // Add sorting
-        $sort = [];
-        $sortField = $request->query->get('sortBy');
-        $sortOrder = $request->query->get('sortOrder', 'asc');
-        if ($sortField) {
-            $sort[$sortField] = $sortOrder;
-        }
-    
-        $results = $this->elasticsearchService->searchWithFilters(
-            'mission',
+        // Get current user info
+        $user = $this->getUser();
+        $isAdmin = $user && in_array('ROLE_ADMIN', $user->getRoles());
+        
+        // Extract filters and sorting using helper service
+        $filters = $this->requestHandler->extractFilters($request);
+        $sort = $this->requestHandler->extractSort($request);
+
+        // Use the mission search service
+        $result = $this->missionSearchService->searchMissions(
             $query,
             $filters,
             $sort,
             $page,
-            $limit
+            $user?->getUserIdentifier(),
+            $isAdmin
         );
-    
-        return $this->json($results);
+
+        if (isset($result['error'])) {
+            return $this->json([
+                'error' => $result['error'],
+                'items' => [],
+                'total' => 0
+            ], 500);
+        }
+
+        $missions = $result['missions'] ?? [];
+        
+        // Convert to JSON response format using helper service
+        $responseData = $this->requestHandler->createPaginatedResponse($missions, $page);
+
+        return $this->json($responseData);
     }
 }
