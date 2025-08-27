@@ -71,7 +71,7 @@ final class MissionController extends AbstractController
             $filters,
             $sort,
             $page,
-            $user?->getUserIdentifier(),
+            $user?->getId(),
             $isAdmin
         );
 
@@ -106,7 +106,7 @@ final class MissionController extends AbstractController
             $mission = $missionRepository->save($mission, $this->getUser());
 
             // Clear mission cache
-            $this->missionSearchService->clearMissionCache($this->getUser()?->getUserIdentifier());
+            $this->missionSearchService->clearMissionCache($this->getUser()?->getId());
 
             $logger->info('Mission created', [
                 'mission_id' => $mission->getId(),
@@ -150,7 +150,7 @@ final class MissionController extends AbstractController
             $missionRepository->save($mission);
 
             // Clear mission cache
-            $this->missionSearchService->clearMissionCache($this->getUser()?->getUserIdentifier());
+            $this->missionSearchService->clearMissionCache($this->getUser()?->getId());
 
             $logger->info('Mission updated', [
                 'mission_id' => $mission->getId(),
