@@ -70,12 +70,14 @@ class MissionSearchService
             } else {
                 $missions = $this->searchWithDatabase($filters, $page, $limit, $userId, $isAdmin);
             }
-
+            //echo 'Search Missions'.$cacheKey; exit;
             // Cache the result (only for non-search queries)
             if (!$searchQuery) {
+                //echo 'Search Missions Inside '.$cacheKey; exit;
                 $this->redisService->setValueWithTags($cacheKey, $missions, ['missions'], 600); // 10 minutes
                 $this->logger->info('Missions cached in Redis', ['cache_key' => $cacheKey]);
             }
+            //echo 'Search Missions'.$cacheKey; exit;
 
             return [
                 'missions' => $missions,
